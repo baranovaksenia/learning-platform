@@ -2,14 +2,12 @@
 
 import { FileUpload } from '@/components/file-upload'
 import { Button } from '@/components/ui/button'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Course } from '@prisma/client'
 import axios from 'axios'
 import { ImageIcon, Pencil, PlusCircle } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import * as z from 'zod'
 
@@ -19,26 +17,17 @@ interface ImageFormProps {
 }
 
 const formSchema = z.object({
-	imageUrl: z.string().nonempty({ message: 'Image is required' }),
+	imageUrl: z.string().min(1, {
+		message: 'Image is required',
+	}),
 })
 
 const ImageForm = ({ initialData, courseId }: ImageFormProps) => {
-	const router = useRouter()
 	const [isEditing, setIsEditing] = useState(false)
 
-	const toggleEdit = () => {
-		setIsEditing(prev => !prev)
-	}
+	const toggleEdit = () => setIsEditing(current => !current)
 
-	const form = useForm<z.infer<typeof formSchema>>({
-		resolver: zodResolver(formSchema),
-		defaultValues: {
-			imageUrl: initialData?.imageUrl || '',
-		},
-	})
-
-	const { isSubmitting, isValid } = form.formState
-
+	const router = useRouter()
 	const onSubmit = async (values: z.infer<typeof formSchema>) => {
 		try {
 			await axios.patch(`/api/courses/${courseId}`, values)
@@ -70,7 +59,6 @@ const ImageForm = ({ initialData, courseId }: ImageFormProps) => {
 					)}
 				</Button>
 			</div>
-
 			{!isEditing &&
 				(!initialData.imageUrl ? (
 					<div className='flex items-center justify-center h-60 bg-slate-200 rounded-md'>
@@ -92,6 +80,7 @@ const ImageForm = ({ initialData, courseId }: ImageFormProps) => {
 						endpoint='courseImage'
 						onChange={url => {
 							if (url) {
+								onSubmit({ imageUrl: url })
 							}
 						}}
 					/>
