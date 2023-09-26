@@ -10,6 +10,7 @@ import {
 import { redirect } from 'next/navigation'
 import { AttachmentForm } from './_components/attachment-form'
 import CategoryForm from './_components/category-form'
+import ChaptersForm from './_components/chapters-form'
 import DescriptionForm from './_components/description-form'
 import ImageForm from './_components/image-form'
 import PriceForm from './_components/price-form'
@@ -21,10 +22,15 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
 	if (!userId) {
 		return redirect('/')
 	}
-	// fetch the course from the database
+	// fetch the course from the database (only if the user is the creator)
 	const course = await db.course.findUnique({
-		where: { id: params.courseId },
+		where: { id: params.courseId, userId },
 		include: {
+			chapters: {
+				orderBy: {
+					position: 'asc',
+				},
+			},
 			attachments: {
 				orderBy: {
 					createdAt: 'desc',
@@ -91,7 +97,7 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
 							<h2 className='text-xl'>Course Chapters</h2>
 						</div>
 
-						<div>TODO: chapters</div>
+						<ChaptersForm initialData={course} courseId={course.id} />
 
 						<div className='flex items-center gap-x-2'>
 							<IconBadge icon={CircleDollarSign} />
